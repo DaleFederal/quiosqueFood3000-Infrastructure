@@ -1,5 +1,12 @@
 name: Terraform Infra
 
+on:
+  push:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform.yml'
+    branches: [ "main" ]
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
