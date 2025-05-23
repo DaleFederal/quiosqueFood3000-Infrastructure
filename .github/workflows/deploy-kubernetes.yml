@@ -1,0 +1,46 @@
+name: Deploy Kubernetes
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'kubernetes/**'
+      - '.github/workflows/deploy-kubernetes.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/quiosque-food-repo/quiosque-food-app:${{ github.sha }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+    - name: Configure Docker to use Artifact Registry
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Build and Push Docker image
+      run: |
+        docker build -t $IMAGE .
+        docker push $IMAGE
+
+    - name: Get GKE credentials
+      run: |
+        gcloud container clusters get-credentials quiosque-food-cluster \
+          --region us-central1 \
+          --project ${{ secrets.GCP_PROJECT }}
+
+    - name: Update image in Kubernetes YAML
+      run: |
+        sed -i "s|image:.*|image: $IMAGE|g" kubernetes/deployment.yaml
+
+    - name: Apply all Kubernetes manifests
+      run: |
+        kubectl apply -f kubernetes/
