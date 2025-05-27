@@ -6,6 +6,7 @@ on:
     paths:
       - 'kubernetes/**'
       - '.github/workflows/deploy-kubernetes.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
