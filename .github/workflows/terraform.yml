@@ -6,6 +6,7 @@ on:
       - 'infra/**'
       - '.github/workflows/terraform.yml'
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   terraform:
